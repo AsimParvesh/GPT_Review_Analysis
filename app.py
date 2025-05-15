@@ -19,6 +19,19 @@ nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
+
+import nltk
+
+for resource in ['punkt', 'stopwords', 'wordnet']:
+    try:
+        if resource == 'punkt':
+            nltk.data.find('tokenizers/punkt')
+        else:
+            nltk.data.find(f'corpora/{resource}')
+    except LookupError:
+        nltk.download(resource)
+
+
 # Load Model and Tools
 model = tf.keras.models.load_model(
     'models/sentiment_model.h5',
