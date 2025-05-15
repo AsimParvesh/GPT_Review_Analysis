@@ -6,3 +6,4 @@ matplotlib
 wordcloud
 seaborn
 plotly
+tensorflow
