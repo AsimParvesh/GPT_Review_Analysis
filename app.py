@@ -20,6 +20,21 @@ nltk.download('punkt')
 nltk.download('wordnet')
 
 
+import re
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import TreebankWordTokenizer
+from nltk.corpus import stopwords
+
+# Ensure required downloads
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+tokenizer = TreebankWordTokenizer()
+
+
 import nltk
 
 for resource in ['punkt', 'stopwords', 'wordnet']:
@@ -52,18 +67,9 @@ def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    text = re.sub(r'\d+', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-
-    try:
-        tokens = word_tokenize(text)
-    except LookupError:
-        nltk.download('punkt')
-        tokens = word_tokenize(text)
-
+    tokens = tokenizer.tokenize(text)
     tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words and len(w) > 2]
     return ' '.join(tokens)
-
 
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
