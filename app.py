@@ -33,13 +33,24 @@ with open('models/label_encoder.pkl', 'rb') as f:
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
+from nltk.tokenize import word_tokenize
+
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    tokens = nltk.word_tokenize(text)
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    try:
+        tokens = word_tokenize(text)
+    except LookupError:
+        nltk.download('punkt')
+        tokens = word_tokenize(text)
+
     tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words and len(w) > 2]
     return ' '.join(tokens)
+
 
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
