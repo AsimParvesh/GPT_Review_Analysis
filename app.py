@@ -20,21 +20,19 @@ nltk.download('punkt')
 nltk.download('wordnet')
 
 
-import re
 import nltk
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import TreebankWordTokenizer
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import re
 
-# Ensure required downloads
+# Ensure NLTK resources are downloaded
+nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
-tokenizer = TreebankWordTokenizer()
-
-
 import nltk
 
 for resource in ['punkt', 'stopwords', 'wordnet']:
@@ -67,18 +65,18 @@ def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    tokens = tokenizer.tokenize(text)
-    tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words and len(w) > 2]
+    tokens = word_tokenize(text)  # ✅ This uses NLTK's tokenizer
+    tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words]
     return ' '.join(tokens)
 
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
-    sequence = tokenizer.texts_to_sequences([cleaned])
+    sequence = tokenizer.texts_to_sequences([cleaned])  # Keras tokenizer
     padded = pad_sequences(sequence, maxlen=150)
     prediction = model.predict(padded)
-    predicted_class = prediction.argmax(axis=-1)[0]
-    sentiment = encoder.inverse_transform([predicted_class])[0]
+    sentiment = label_encoder.inverse_transform([np.argmax(prediction)])[0]
     return sentiment
+
 
 # Load Data
 df = pd.read_csv("data/cleaned_reviews.csv")
