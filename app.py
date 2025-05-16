@@ -13,6 +13,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.layers import Bidirectional, LSTM
+from nltk.tokenize import word_tokenize
+
 
 # NLTK Setup
 nltk.download('stopwords')
@@ -25,7 +27,7 @@ model = tf.keras.models.load_model(
     custom_objects={'Bidirectional': Bidirectional, 'LSTM': LSTM}
 )
 with open('models/tokenizer.pkl', 'rb') as f:
-    tokenizer = pickle.load(f)
+    keras_tokenizer = pickle.load(f)
 with open('models/label_encoder.pkl', 'rb') as f:
     encoder = pickle.load(f)
 
@@ -33,17 +35,28 @@ with open('models/label_encoder.pkl', 'rb') as f:
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
+from nltk.tokenize import word_tokenize
+
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    tokens = nltk.word_tokenize(text)
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    try:
+        tokens = word_tokenize(text)
+    except LookupError:
+        nltk.download('punkt')
+        tokens = word_tokenize(text)
+
     tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words and len(w) > 2]
     return ' '.join(tokens)
 
+
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
-    sequence = tokenizer.texts_to_sequences([cleaned])
+    sequence = keras_tokenizer.texts_to_sequences([cleaned])
     padded = pad_sequences(sequence, maxlen=150)
     prediction = model.predict(padded)
     predicted_class = prediction.argmax(axis=-1)[0]
