@@ -26,10 +26,6 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import re
 
-from tensorflow.keras.preprocessing.text import Tokenizer
-keras_tokenizer = Tokenizer()
-
-
 # Ensure NLTK resources are downloaded
 nltk.download('punkt')
 nltk.download('stopwords')
@@ -65,25 +61,21 @@ lemmatizer = WordNetLemmatizer()
 
 from nltk.tokenize import word_tokenize
 
-from nltk.tokenize import word_tokenize
-
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    tokens = word_tokenize(text)  # <-- This is correct
+    tokens = word_tokenize(text)  # ✅ This uses NLTK's tokenizer
     tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words]
     return ' '.join(tokens)
 
-
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
-    sequence = keras_tokenizer.texts_to_sequences([cleaned])  # Keras tokenizer
+    sequence = tokenizer.texts_to_sequences([cleaned])  # Keras tokenizer
     padded = pad_sequences(sequence, maxlen=150)
     prediction = model.predict(padded)
     sentiment = label_encoder.inverse_transform([np.argmax(prediction)])[0]
     return sentiment
-
 
 
 # Load Data
