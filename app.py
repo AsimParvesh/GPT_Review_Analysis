@@ -19,32 +19,6 @@ nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
-
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-import re
-
-# Ensure NLTK resources are downloaded
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-
-stop_words = set(stopwords.words('english'))
-lemmatizer = WordNetLemmatizer()
-import nltk
-
-for resource in ['punkt', 'stopwords', 'wordnet']:
-    try:
-        if resource == 'punkt':
-            nltk.data.find('tokenizers/punkt')
-        else:
-            nltk.data.find(f'corpora/{resource}')
-    except LookupError:
-        nltk.download(resource)
-
-
 # Load Model and Tools
 model = tf.keras.models.load_model(
     'models/sentiment_model.h5',
@@ -65,18 +39,27 @@ def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
     text = re.sub(r'[^\w\s]', '', text)
-    tokens = word_tokenize(text)  # ✅ This uses NLTK's tokenizer
-    tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words]
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    try:
+        tokens = word_tokenize(text)
+    except LookupError:
+        nltk.download('punkt')
+        tokens = word_tokenize(text)
+
+    tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words and len(w) > 2]
     return ' '.join(tokens)
+
 
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
-    sequence = tokenizer.texts_to_sequences([cleaned])  # Keras tokenizer
+    sequence = tokenizer.texts_to_sequences([cleaned])
     padded = pad_sequences(sequence, maxlen=150)
     prediction = model.predict(padded)
-    sentiment = label_encoder.inverse_transform([np.argmax(prediction)])[0]
+    predicted_class = prediction.argmax(axis=-1)[0]
+    sentiment = encoder.inverse_transform([predicted_class])[0]
     return sentiment
-
 
 # Load Data
 df = pd.read_csv("data/cleaned_reviews.csv")
