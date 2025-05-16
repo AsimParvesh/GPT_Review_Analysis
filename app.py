@@ -13,6 +13,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.layers import Bidirectional, LSTM
+from nltk.tokenize import word_tokenize
+
 
 # NLTK Setup
 nltk.download('stopwords')
@@ -25,7 +27,7 @@ model = tf.keras.models.load_model(
     custom_objects={'Bidirectional': Bidirectional, 'LSTM': LSTM}
 )
 with open('models/tokenizer.pkl', 'rb') as f:
-    tokenizer = pickle.load(f)
+    keras_tokenizer = pickle.load(f)
 with open('models/label_encoder.pkl', 'rb') as f:
     encoder = pickle.load(f)
 
@@ -54,7 +56,7 @@ def clean_text(text):
 
 def predict_sentiment(review_text):
     cleaned = clean_text(review_text)
-    sequence = tokenizer.texts_to_sequences([cleaned])
+    sequence = keras_tokenizer.texts_to_sequences([cleaned])
     padded = pad_sequences(sequence, maxlen=150)
     prediction = model.predict(padded)
     predicted_class = prediction.argmax(axis=-1)[0]
